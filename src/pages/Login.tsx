@@ -27,12 +27,20 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      await login(email, password);
+      const user = await login(email, password);
       toast({
         title: "Welcome back!",
         description: "You have successfully signed in.",
       });
-      navigate("/");
+      
+      // Redirect based on user role
+      if (user.role === "superuser") {
+        navigate("/admin");
+      } else if (user.role === "agent") {
+        navigate("/agent");
+      } else {
+        navigate("/properties");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {
