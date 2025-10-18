@@ -6,15 +6,15 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 
 // Fix for default marker icon in Leaflet
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 
-// @ts-ignore
+// @ts-ignore - Fixing Leaflet default icon issue
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconUrl: markerIcon,
@@ -46,7 +46,7 @@ export function PropertyMap({
   const navigate = useNavigate();
 
   // Custom icon for properties
-  const propertyIcon = new L.Icon({
+  const propertyIcon = L.icon({
     iconUrl: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='%23ea580c' stroke='white' stroke-width='2'%3E%3Cpath d='M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z'%3E%3C/path%3E%3Ccircle cx='12' cy='10' r='3'%3E%3C/circle%3E%3C/svg%3E",
     iconSize: [32, 32],
     iconAnchor: [16, 32],
@@ -59,6 +59,7 @@ export function PropertyMap({
 
   return (
     <MapContainer
+      // @ts-ignore - React Leaflet v4 types issue
       center={center}
       zoom={zoom}
       style={{ height, width: "100%", borderRadius: "0.5rem" }}
@@ -66,13 +67,17 @@ export function PropertyMap({
     >
       <ChangeView center={center} zoom={zoom} />
       <TileLayer
+        // @ts-ignore - React Leaflet v4 types issue
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
       
+      {/* @ts-ignore - react-leaflet-cluster types */}
       <MarkerClusterGroup chunkedLoading>
         {validProperties.map((property) => (
           <Marker
             key={property.id}
+            // @ts-ignore - React Leaflet v4 types issue
             position={[property.location.coordinates!.lat, property.location.coordinates!.lng]}
             icon={propertyIcon}
           >
