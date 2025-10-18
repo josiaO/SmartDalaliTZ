@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Plus, TrendingUp, DollarSign, Calendar, CreditCard } from "lucide-react";
+import { Routes, Route, useNavigate } from "react-router-dom";
+import { Plus, TrendingUp, DollarSign, Calendar, Building2, Eye, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PropertyCard } from "@/components/PropertyCard";
@@ -12,9 +13,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MpesaPaymentForm } from "@/components/MpesaPaymentForm";
 import { StripePaymentForm } from "@/components/StripePaymentForm";
 
-export default function AgentDashboard() {
+function AgentOverview() {
   const { user } = useAuth();
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<"monthly" | "annual">("monthly");
   
@@ -24,27 +26,40 @@ export default function AgentDashboard() {
     ? Math.ceil((new Date(user.trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
     : 0;
 
-  const monthlyPrice = 50000; // TSh 50,000 per month
-  const annualPrice = 500000; // TSh 500,000 per year (2 months free)
+  const monthlyPrice = 50000;
+  const annualPrice = 500000;
+  const totalViews = 1234;
+  const totalInquiries = 45;
+  const earnings = 125000;
 
   const stats = [
     {
       title: "Total Listings",
       value: agentProperties.length.toString(),
+      icon: Building2,
+      color: "bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20",
+      iconColor: "text-primary",
+    },
+    {
+      title: "Total Views",
+      value: totalViews.toLocaleString(),
+      icon: Eye,
+      color: "bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20",
+      iconColor: "text-blue-500",
+    },
+    {
+      title: "Inquiries",
+      value: totalInquiries.toString(),
       icon: TrendingUp,
-      color: "text-primary",
+      color: "bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20",
+      iconColor: "text-green-500",
     },
     {
-      title: "Active Listings",
-      value: agentProperties.filter((p) => p.status === "published").length.toString(),
+      title: "Earnings",
+      value: `TSh ${earnings.toLocaleString()}`,
       icon: DollarSign,
-      color: "text-success",
-    },
-    {
-      title: "Trial Days Left",
-      value: trialDaysLeft.toString(),
-      icon: Calendar,
-      color: trialDaysLeft <= 7 ? "text-destructive" : "text-warning",
+      color: "bg-gradient-to-br from-orange-500/10 to-orange-500/5 border-orange-500/20",
+      iconColor: "text-orange-500",
     },
   ];
 
@@ -55,210 +70,174 @@ export default function AgentDashboard() {
 
   const handlePaymentSuccess = () => {
     setShowPaymentDialog(false);
-    // In real app, this would update the subscription status
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground mb-2">
-              {t("agent.dashboard")}
-            </h1>
-            <p className="text-muted-foreground">
-              Welcome back, {user?.name}
-            </p>
-          </div>
-          <Button className="gap-2">
-            <Plus className="w-4 h-4" />
-            {t("agent.addProperty")}
-          </Button>
+    <div className="p-4 md:p-8 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Agent Dashboard</h1>
+          <p className="text-muted-foreground">Welcome back, {user?.name}</p>
         </div>
+        <Button className="gap-2" onClick={() => navigate("/agent/listings")}>
+          <Plus className="w-4 h-4" />
+          Add Property
+        </Button>
+      </div>
 
-        {/* Subscription Status */}
-        {user?.subscriptionActive && trialDaysLeft > 0 && (
-          <Card className={`mb-6 ${trialDaysLeft <= 7 ? "border-destructive" : "border-primary"}`}>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold mb-1">
-                    {trialDaysLeft <= 7 ? "⚠️ Trial Ending Soon" : "🎉 Free Trial Active"}
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Your trial expires on{" "}
-                    {user?.trialEndsAt
-                      ? new Date(user.trialEndsAt).toLocaleDateString()
-                      : "N/A"}
-                  </p>
-                </div>
-                <Button onClick={() => handleUpgrade("monthly")}>
-                  Upgrade Now
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Subscription Plans */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <Card className="border-primary">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Monthly Plan</CardTitle>
-                <Badge>Popular</Badge>
-              </div>
-              <CardDescription>Perfect for getting started</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="mb-4">
-                <div className="text-3xl font-bold">TSh {monthlyPrice.toLocaleString()}</div>
-                <div className="text-sm text-muted-foreground">per month</div>
-              </div>
-              <ul className="space-y-2 mb-4 text-sm">
-                <li className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                  Unlimited property listings
-                </li>
-                <li className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                  Priority customer support
-                </li>
-                <li className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                  Advanced analytics
-                </li>
-              </ul>
-              <Button 
-                className="w-full" 
-                onClick={() => handleUpgrade("monthly")}
-              >
-                Subscribe Monthly
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="border-accent">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Annual Plan</CardTitle>
-                <Badge variant="secondary">Save 17%</Badge>
-              </div>
-              <CardDescription>Best value for serious agents</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="mb-4">
-                <div className="text-3xl font-bold">TSh {annualPrice.toLocaleString()}</div>
-                <div className="text-sm text-muted-foreground">
-                  per year (TSh {Math.round(annualPrice / 12).toLocaleString()}/month)
-                </div>
-              </div>
-              <ul className="space-y-2 mb-4 text-sm">
-                <li className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-accent" />
-                  Everything in Monthly plan
-                </li>
-                <li className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-accent" />
-                  2 months free
-                </li>
-                <li className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-accent" />
-                  Featured listings priority
-                </li>
-              </ul>
-              <Button 
-                className="w-full" 
-                variant="default"
-                onClick={() => handleUpgrade("annual")}
-              >
-                Subscribe Annually
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {stats.map((stat) => (
-            <Card key={stat.title}>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  {stat.title}
-                </CardTitle>
-                <stat.icon className={`w-4 h-4 ${stat.color}`} />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* Properties */}
-        <Card>
-          <CardHeader>
+      {/* Trial Status Alert */}
+      {user?.subscriptionActive && trialDaysLeft > 0 && (
+        <Card className={`${trialDaysLeft <= 7 ? "border-destructive bg-destructive/5" : "border-primary bg-primary/5"}`}>
+          <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>{t("agent.myListings")}</CardTitle>
-                <CardDescription>Manage your property listings</CardDescription>
+                <h3 className="font-semibold mb-1 flex items-center gap-2">
+                  {trialDaysLeft <= 7 ? "⚠️ Trial Ending Soon" : "🎉 Free Trial Active"}
+                  <Badge variant={trialDaysLeft <= 7 ? "destructive" : "default"}>
+                    {trialDaysLeft} days left
+                  </Badge>
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Your trial expires on{" "}
+                  {user?.trialEndsAt
+                    ? new Date(user.trialEndsAt).toLocaleDateString()
+                    : "N/A"}
+                </p>
               </div>
+              <Button onClick={() => handleUpgrade("monthly")}>
+                Upgrade Now
+              </Button>
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {stats.map((stat) => (
+          <Card key={stat.title} className={stat.color}>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                {stat.title}
+              </CardTitle>
+              <stat.icon className={`w-4 h-4 ${stat.iconColor}`} />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stat.value}</div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Subscription Plans */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card className="border-primary shadow-lg shadow-primary/10">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Monthly Plan</CardTitle>
+              <Badge>Popular</Badge>
+            </div>
+            <CardDescription>Perfect for getting started</CardDescription>
           </CardHeader>
           <CardContent>
-            {agentProperties.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {agentProperties.map((property) => (
-                  <PropertyCard key={property.id} property={property} />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <div className="text-5xl mb-4">📝</div>
-                <h3 className="text-xl font-semibold mb-2">No listings yet</h3>
-                <p className="text-muted-foreground mb-4">
-                  Start adding properties to reach potential buyers
-                </p>
-                <Button>Add Your First Property</Button>
-              </div>
-            )}
+            <div className="mb-4">
+              <div className="text-3xl font-bold">TSh {monthlyPrice.toLocaleString()}</div>
+              <div className="text-sm text-muted-foreground">per month</div>
+            </div>
+            <ul className="space-y-2 mb-4 text-sm">
+              <li className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                Unlimited property listings
+              </li>
+              <li className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                Priority customer support
+              </li>
+              <li className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                Advanced analytics
+              </li>
+            </ul>
+            <Button 
+              className="w-full" 
+              onClick={() => handleUpgrade("monthly")}
+            >
+              Subscribe Monthly
+            </Button>
           </CardContent>
         </Card>
 
-        {/* Payment Methods Info */}
-        <Card className="mt-6">
+        <Card className="border-orange-500 shadow-lg shadow-orange-500/10">
           <CardHeader>
-            <CardTitle>Available Payment Methods</CardTitle>
-            <CardDescription>Choose your preferred payment option</CardDescription>
+            <div className="flex items-center justify-between">
+              <CardTitle>Annual Plan</CardTitle>
+              <Badge variant="secondary">Save 17%</Badge>
+            </div>
+            <CardDescription>Best value for serious agents</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 p-4 border rounded-lg">
-                <div className="w-12 h-8 bg-gradient-to-r from-green-500 to-green-600 rounded flex items-center justify-center text-white text-xs font-bold">
-                  M-PESA
-                </div>
-                <div className="flex-1">
-                  <p className="font-medium">M-Pesa (Tanzania)</p>
-                  <p className="text-sm text-muted-foreground">Pay directly from your mobile money account</p>
-                </div>
-                <Badge variant="outline">✓ Ready</Badge>
-              </div>
-              
-              <div className="flex items-center gap-3 p-4 border rounded-lg">
-                <div className="w-12 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded flex items-center justify-center text-white text-xs font-bold">
-                  Stripe
-                </div>
-                <div className="flex-1">
-                  <p className="font-medium">Credit/Debit Card</p>
-                  <p className="text-sm text-muted-foreground">International payments via Visa, Mastercard</p>
-                </div>
-                <Badge variant="outline">✓ Ready</Badge>
+            <div className="mb-4">
+              <div className="text-3xl font-bold">TSh {annualPrice.toLocaleString()}</div>
+              <div className="text-sm text-muted-foreground">
+                per year (TSh {Math.round(annualPrice / 12).toLocaleString()}/month)
               </div>
             </div>
+            <ul className="space-y-2 mb-4 text-sm">
+              <li className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                Everything in Monthly plan
+              </li>
+              <li className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                2 months free
+              </li>
+              <li className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                Featured listings priority
+              </li>
+            </ul>
+            <Button 
+              className="w-full bg-orange-600 hover:bg-orange-700" 
+              onClick={() => handleUpgrade("annual")}
+            >
+              Subscribe Annually
+            </Button>
           </CardContent>
         </Card>
       </div>
+
+      {/* My Listings */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>My Listings</CardTitle>
+              <CardDescription>Manage your property listings</CardDescription>
+            </div>
+            <Button variant="outline" onClick={() => navigate("/agent/listings")}>
+              View All
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {agentProperties.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {agentProperties.slice(0, 3).map((property) => (
+                <PropertyCard key={property.id} property={property} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <div className="text-5xl mb-4">📝</div>
+              <h3 className="text-xl font-semibold mb-2">No listings yet</h3>
+              <p className="text-muted-foreground mb-4">
+                Start adding properties to reach potential buyers
+              </p>
+              <Button>Add Your First Property</Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Payment Dialog */}
       <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
@@ -295,5 +274,14 @@ export default function AgentDashboard() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+export default function AgentDashboard() {
+  return (
+    <Routes>
+      <Route index element={<AgentOverview />} />
+      <Route path="listings" element={<div className="p-8"><h2 className="text-2xl font-bold">My Listings (Coming Soon)</h2></div>} />
+    </Routes>
   );
 }
